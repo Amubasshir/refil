@@ -1,16 +1,14 @@
-import { NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma';
+import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const page = Number.parseInt(searchParams.get("page") || "1")
-  const limit = Number.parseInt(searchParams.get("limit") || "10")
-  const sortBy = searchParams.get("sortBy") || "createdAt"
-  const sortOrder = searchParams.get("sortOrder") || "desc"
+  const { searchParams } = new URL(request.url);
+  const page = Number.parseInt(searchParams.get('page') || '1');
+  const limit = Number.parseInt(searchParams.get('limit') || '10');
+  const sortBy = searchParams.get('sortBy') || 'createdAt';
+  const sortOrder = searchParams.get('sortOrder') || 'desc';
 
-  const skip = (page - 1) * limit
+  const skip = (page - 1) * limit;
 
   try {
     const [leads, total] = await Promise.all([
@@ -22,7 +20,7 @@ export async function GET(request: Request) {
         },
       }),
       prisma.lead.count(),
-    ])
+    ]);
 
     return NextResponse.json(
       {
@@ -35,17 +33,20 @@ export async function GET(request: Request) {
           totalPages: Math.ceil(total / limit),
         },
       },
-      { status: 200 },
-    )
+      { status: 200 }
+    );
   } catch (error) {
-    console.error("Error fetching leads:", error)
-    return NextResponse.json({ success: false, error: "Failed to fetch leads" }, { status: 500 })
+    console.error('Error fetching leads:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch leads' },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
+    const body = await request.json();
     const {
       fullName,
       email,
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
       propertyType,
       propertyValue,
       currentLoanAmount,
-    } = body
+    } = body;
 
     const lead = await prisma.lead.create({
       data: {
@@ -72,14 +73,18 @@ export async function POST(request: Request) {
         creditScore,
         propertyType,
         propertyValue: propertyValue ? Number.parseFloat(propertyValue) : null,
-        currentLoanAmount: currentLoanAmount ? Number.parseFloat(currentLoanAmount) : null,
+        currentLoanAmount: currentLoanAmount
+          ? Number.parseFloat(currentLoanAmount)
+          : null,
       },
-    })
+    });
 
-    return NextResponse.json({ success: true, lead }, { status: 201 })
+    return NextResponse.json({ success: true, lead }, { status: 201 });
   } catch (error) {
-    console.error("Error creating lead:", error)
-    return NextResponse.json({ success: false, error: "Failed to create lead" }, { status: 500 })
+    console.error('Error creating lead:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to create lead' },
+      { status: 500 }
+    );
   }
 }
-
